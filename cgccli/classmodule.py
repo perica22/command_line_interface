@@ -3,4 +3,3 @@ class MyClass():
         self.name = name
     def say_name(self):
         print('name is {}'.format(self.name))
-
