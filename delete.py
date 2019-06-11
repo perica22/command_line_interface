@@ -14,7 +14,8 @@ from cgccli.api import API
 @click.option('--project', required=False, default=None, show_default=True, help='Projects to retrieve.')
 @click.option('--file', required=False, default=None, show_default=True, help='Files to retrieve or update.')
 @click.argument('argument', nargs=2, required=True)
-def main(token, argument, project, file):
+@click.argument('data', nargs=2, required=False, default=None)
+def main(token, argument, project, file, data):
     headers = {
             "X-SBG-Auth-Token": token,
             "Accept":"application/json",
