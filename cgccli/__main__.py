@@ -3,7 +3,7 @@ import click
 import json
 import requests
 
-from api import API
+from api import ApiService
 
 
 
@@ -17,16 +17,12 @@ from api import API
 @click.argument('argument', nargs=2, required=True)
 @click.argument('data', nargs=2, required=False, default=None)
 def main(token, argument, project, file, data):
-    headers = {
-            "X-SBG-Auth-Token": token,
-            "Accept":"application/json",
-            "Content-Type":"application/json"
-    }
+
+    myProject = ApiService(token=token)
 
     if argument[0] == 'projects':
         #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c projects list
-        myProject = API(path=('projects/'), headers=headers)
-        response = myProject.api_call()
+        response = myProject.get(endpoint='projects/')
         click.echo(json.dumps(response)) 
 
     elif argument[0] == 'files':
@@ -34,8 +30,7 @@ def main(token, argument, project, file, data):
             #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c files list --project perica22/copy-of-cancer-cell-line-encyclopedia-ccle
             url = "files?project={}".format(project)
 
-            myProject = API(path=url, headers=headers)
-            response = myProject.api_call()
+            response = myProject.get(endpoint=url)
             click.echo(json.dumps(response))             
 
         elif argument[1] == 'update':
@@ -47,8 +42,7 @@ def main(token, argument, project, file, data):
             #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c files stat --file 5cff5ac9e4b04e1432b04164
             url = "files/{}".format(file)
 
-            myProject = API(path=url, headers=headers)
-            response = myProject.api_call()
+            response = myProject.get(endpoint=url)
             click.echo(json.dumps(response)) 
             
 
