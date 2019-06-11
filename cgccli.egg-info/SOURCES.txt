@@ -2,6 +2,7 @@ README.md
 setup.py
 cgccli/__init__.py
 cgccli/__main__.py
+cgccli/api.py
 cgccli/classmodule.py
 cgccli/funcmodule.py
 cgccli.egg-info/PKG-INFO
