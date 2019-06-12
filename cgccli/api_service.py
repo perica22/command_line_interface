@@ -1,13 +1,13 @@
 # IMPORTS
-from requests import request
 import json
-import functools
-import requests
+
+from functools import wraps
+from requests import request
 
 
 
 def determine_endpoint_url(f):
-    @functools.wraps(f)
+    @wraps(f)
     def wrapped(self, **kwargs):
         endpoint = kwargs.get('endpoint', None)
         query = kwargs.get('query', None)
@@ -15,21 +15,26 @@ def determine_endpoint_url(f):
         url = 'https://cgc-api.sbgenomics.com/v2/' + endpoint
         if query:
             url = url + query 
-        defaults = {'url': url}
-        defaults.update(kwargs)
+        kwargs['url'] = url
 
-        return f(self, **defaults)
+        return f(self, **kwargs)
 
     return wrapped
 
 def get_data_for_request(f):
-    @functools.wraps(f)
+    @wraps(f)
     def wrapped(self, **kwargs):
+
         data = kwargs.get('data', None)
-        data = json.dumps(data) if isinstance(data, dict) or isinstance(data,list)  else None
-        defaults = {'data': data}
-        defaults.update(kwargs)
-        return f(self, **defaults)
+        if data:
+            if 'tags' in kwargs['endpoint']:
+                data = json.dumps(data)
+            else:
+                data = json.dumps({data[0]: data[1]})
+
+        kwargs['data'] = data
+
+        return f(self, **kwargs)
 
     return wrapped
 
@@ -45,7 +50,6 @@ class ApiService:
             }
 
     @determine_endpoint_url
-    @get_data_for_request
     def get(self, **kwargs):
         return self._request('get', **kwargs)
 
@@ -54,18 +58,23 @@ class ApiService:
     def put(self, **kwargs):
         return self._request('put', **kwargs)
 
+    @determine_endpoint_url
+    @get_data_for_request
+    def patch(self, **kwargs):
+        return self._request('patch', **kwargs)
+
     def _request(self, method, **kwargs):
         """
         Translates all the HTTP calls to interface with the CGC
         """
-        data = kwargs.get('data')
+        data = kwargs.get('data', None)
         url = kwargs.get('url')
 
         response = request(
             method, url, data=data, headers=self.headers)
-        #response = getattr(requests, method)(url, data, headers=self.headers)
+
         response_dict = json.loads(response.content) if response.content else {}
         if response.status_code / 100 != 2:
-            print(response_dict['message'])
-            raise Exception('Server responded with status code %s.' % response.status_code)
+            return response_dict['message']
+
         return response_dict
