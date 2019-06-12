@@ -39,7 +39,6 @@ def get_data_for_request(f):
     return wrapped
 
 
-#  CLASSES
 class ApiService:
     # making a class out of the api() function, adding other methods
     def __init__(self, token):
