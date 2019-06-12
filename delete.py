@@ -1,8 +1,6 @@
 # TOKEN: 194a5e2aeb4447f5b6f9f56d85bf786c
-import re
 import json
 import click
-import requests
 
 from cgccli.cgccli_controller import CgccliController
 
