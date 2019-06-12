@@ -1,31 +1,50 @@
-# TOKEN: 194a5e2aeb4447f5b6f9f56d85bf786c
-import re
-import json
-import click
 import requests
-
 from cgccli.api_service import ApiService
 
 
+class CgccliController:
+    def __init__(self, token, argument, project=None, file=None, data=None, dest=None):
+        self.token = token
+        self.object = argument[0]
+        self.action = argument[1]
+        self.file = file
+        self.dest = dest
+        self.api_service = ApiService(token)
 
-dict_update = ('metadata', 'tags')
 
-@click.command()
-@click.option('--token', required=True, help='Your api token.')
-@click.option('--project', required=False, default=None, show_default=True, help='Projects to retrieve.')
-@click.option('--file', required=False, default=None, show_default=True, help='Files to retrieve or update.')
-@click.option('--dest', required=False, default=None, show_default=True, help='Destination to download files.')
-@click.argument('argument', nargs=2, required=True)
-@click.argument('data', nargs=-1, required=False, default=None)
-def main(token, argument, project, file, data, dest):
+    def make_call(self):
+        if self.object == 'projects':
+            #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c projects list
+            response = self.api_service.get(endpoint='projects/')   
+            return response
 
-    api_service = ApiService(token)
+        elif self.object == 'files':
+            if self.action == 'update':
+                response = self._update_method()
 
-    if argument[0] == 'projects':
-        #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c projects list
-        response = api_service.get(endpoint='projects/')
+            elif self.action == 'stat':
+                response = self._stat_method()
 
-    elif argument[0] == 'files':
+            elif self.action == 'download':
+                response = self._download_method()
+
+    def _download_method(self):
+        #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c files download --file 5cff5ac9e4b04e1432b04164 --dest perica.txt
+        response = self.api_service.get(
+            endpoint="files/{}/download_info/".format(self.file))
+        content = self._downloadFile(response['url'], self.dest)
+        return response
+
+    def _downloadFile(self, url, file_name):
+        with open(file_name, "wb") as file:
+            # get request
+            response = requests.get(url)
+            # write to file
+            file.write(response.content)
+
+
+'''
+if argument[0] == 'files':
         if argument[1] == 'list':
             #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c files list --project perica22/copy-of-cancer-cell-line-encyclopedia-ccle
             response = api_service.get(
@@ -54,16 +73,4 @@ def main(token, argument, project, file, data, dest):
             response = api_service.get(
                 endpoint="files/{}/download_info/".format(file))
             content = downloadFile(response['url'], dest)
-
-    click.echo(json.dumps(response)) 
-            
-def downloadFile(url, file_name):
-    with open(file_name, "wb") as file:
-        # get request
-        response = requests.get(url)
-        # write to file
-        file.write(response.content)
-
-
-if __name__ == "__main__":
-    main()
+            '''
