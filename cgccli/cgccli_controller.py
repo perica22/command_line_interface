@@ -17,7 +17,8 @@ class CgccliController:
 
     def make_project_call(self, action):
         #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c projects list
-        return self.api_service.get(endpoint='projects/')   
+        if action == 'list':
+            return self.api_service.get(endpoint='projects/')   
 
     def make_files_call(self, action):
         if action == 'list':

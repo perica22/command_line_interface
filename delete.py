@@ -22,6 +22,8 @@ def main(token, argument, project, file, data, dest):
         response = cgccli.make_project_call(argument[1])
     elif argument[0] == 'files':
         response = cgccli.make_project_call(argument[1])
+    else:
+        response = 'No such command: {}'.format(argument[0])
 
     click.echo(json.dumps(response)) 
 
