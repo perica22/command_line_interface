@@ -18,9 +18,10 @@ def determine_endpoint_url(f):
         endpoint = kwargs.get('endpoint', None)
         query = kwargs.get('query', None)
 
+        # concatenating string in order to get full url
         url = 'https://cgc-api.sbgenomics.com/v2/' + endpoint
         if query:
-            url = url + query 
+            url = url + query
         kwargs['url'] = url
 
         return f(self, **kwargs)
@@ -33,8 +34,10 @@ def get_data_for_request(f):
     def wrapped(self, **kwargs):
         data = kwargs.get('data', None)
         if data:
+            # in case tag is in endpoint we need to send list in body
             if 'tags' in kwargs['endpoint']:
                 data = json.dumps(data)
+            # nesting data with proper key
             else:
                 data = json.dumps({data[0]: data[1]})
 

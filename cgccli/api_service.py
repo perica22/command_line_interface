@@ -9,6 +9,8 @@ from cgccli.utils import determine_endpoint_url, get_data_for_request
 class ApiService:
     '''
     Making a class out of the API 
+    - added additional methods with decorators to make clear 
+      which endpoint/method is called from CgccliController
     '''
     def __init__(self, token):
         self.headers = {
@@ -38,10 +40,11 @@ class ApiService:
         data = kwargs.get('data', None)
         url = kwargs.get('url')
 
+        # API call
         response = request(
             method, url, data=data, headers=self.headers)
 
-        response_dict = json.loads(response.content) if response.content else {}
+        response_dict = json.loads(response.content)
         if response.status_code / 100 != 2:
             return response_dict['message']
 

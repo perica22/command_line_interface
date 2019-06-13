@@ -28,11 +28,12 @@ def main(token, argument, project, file, data, dest):
             noCommandFound(argument[1])
 
     elif argument[0] == 'files':
-        response = cgccli.make_files_call(argument[1], project, data, file, dest)
+        response = cgccli.make_files_call(
+            argument[1], project=project, data=data, file=file, dest=dest)
         if response:
             click.echo(json.dumps(response)) if isinstance(response, dict) else click.echo(response)
         else:
-            noCommandFound(argument[1])    
+            noCommandFound(argument[1])
     else:
         noCommandFound(argument[0])
 

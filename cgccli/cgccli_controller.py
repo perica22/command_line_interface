@@ -8,46 +8,46 @@ from cgccli.utils import noCommandFound, DICT_UPDATE
 
 
 class CgccliController:
-
+    '''
+    Prepering data for API calls
+    '''
     def __init__(self, token):
-        self.api_service = ApiService(token)
+        self.api_service = ApiService(token) # instance of API service
 
     def make_project_call(self, action):
         '''
         Projects call
         '''
-        #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c projects list
         if action == 'list':
             return self.api_service.get(endpoint='projects/') 
 
-    def make_files_call(self, action, project=None, data=None, file=None, dest=None):
+    def make_files_call(self, action, **kwargs):
         '''
         Files calls
         '''
-        if action == 'list':
-            #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c files list --project perica22/copy-of-cancer-cell-line-encyclopedia-ccle
+        if action == 'list': # in case list is passed as 2nd argument
             return self.api_service.get(
-                endpoint="files", query="?project=%s/" % (project))
+                endpoint="files", query="?project=%s/" % (kwargs['project']))
 
-        elif action == 'update':
-            #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c files update --file 5cff5ac9e4b04e1432b04164 tags=["marina", "perica", "nikola", "jovica"]
-            endpoint_extension, data = self._determine_endpoint_extension_and_data(data)
+        elif action == 'update': # in case update is passed as 2nd argument
+            endpoint_extension, data = self._determine_endpoint_extension_and_data(kwargs['data'])
+
+            # determing based on endpoint_extension which call needs to be made
             if endpoint_extension:
-                return self.api_service.put(
-                    endpoint="files/{}/{}".format(file, endpoint_extension), data=data)
+                return self.api_service.put(endpoint="files/{}/{}".format(
+                            kwargs['file'], endpoint_extension), data=data)
             else:
                 return self.api_service.patch(
-                    endpoint="files/{}/".format(file), data=data)
+                    endpoint="files/{}/".format(kwargs['file']), data=kwargs['data'])
 
-        elif action == 'stat':
-            #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c files stat --file 5cff5ac9e4b04e1432b04164
-            return self.api_service.get(endpoint="files/{}/".format(file))
+        elif action == 'stat': # in case stat is passed as 2nd argument
+            return self.api_service.get(endpoint="files/{}/".format(kwargs['file']))
 
-        elif action == 'download':
-            #cgccli --token 194a5e2aeb4447f5b6f9f56d85bf786c files download --file 5cff5ac9e4b04e1432b04164 --dest perica.txt
+        elif action == 'download': # in case download is passed as 2nd argument
             response = self.api_service.get(
-                endpoint="files/{}/download_info/".format(file))
-            file_name = self._downloadFile(response['url'], dest)
+                endpoint="files/{}/download_info/".format(kwargs['file']))
+            file_name = self._downloadFile(response['url'], kwargs['dest'])
+
             return 'Downloaded: %s' % (file_name)
 
     def _determine_endpoint_extension_and_data(self, data):
@@ -57,9 +57,10 @@ class CgccliController:
         data = re.findall(r"[\w']+", ' '.join(data))
         
         endpoint_extension = None
-        if data[0] in DICT_UPDATE:
+        if data[0] in DICT_UPDATE: # checkign if zeroth element exsists in predifined tuple
             endpoint_extension = data.pop(0)
-        return endpoint_extension, data
+
+        return endpoint_extension, data 
 
     def _downloadFile(self, url, file_path):
         '''
@@ -67,11 +68,12 @@ class CgccliController:
         '''
         # make sure we have the download directory
         if '/' in file_path:
-            path = file_path.split('/')
-            file_path = path.pop(-1)
+            path = file_path.split('/') # splitting path
+            file_path = path.pop(-1) # last element from list is file name
             try:
                 os.stat(path[0])
             except:
+                # going through path list, making dir and cd into it
                 for path_dir in path:
                     os.mkdir(path_dir)
                     os.chdir(path_dir)
