@@ -57,13 +57,21 @@ class API(object):
     # making a class out of the api() function, adding other methods
     def __init__(self, path, method='GET', query=None, data=None, flagFullPath=False):
         self.flag = {'longList': False}
-        response_dict = api_call(path, method, query, data, flagFullPath)
-        self.response_to_fields(response_dict)
+        self.path = path
+        self.method = method
+        self.query = query
+        self.data = data
+        self.flagFullPath = flagFullPath
+        
+        #if self.flag['longList']:
+         #   self.long_list(response_dict, path, method, query, data)
 
-        if self.flag['longList']:
-            self.long_list(response_dict, path, method, query, data)
+    def make_call(self):
+        response = api_call(self.path, self.method, self.query, self.data, self.flagFullPath)        
+        return response
 
     def response_to_fields(self,rd):
+        
         if 'items' in rd.keys():  
             # get * {files, projects, tasks, apps} (object name plural)
             if len(rd['items']) > 0:
@@ -119,46 +127,58 @@ class API(object):
                     temp.append(rd['items'][ii][keys[jj]])
                 setattr(self, keys[jj], temp)
 
-
-if __name__ == "__main__":
-    # Did you remember to change the AUTH_TOKEN?
-    if AUTH_TOKEN == 'AUTH_TOKEN':
-        print "You need to replace 'AUTH_TOKEN' string with your actual token. Please fix it."
-        exit()
-    # list all billing groups on your account
-    billingGroups = API('billing/groups')
-    # Select the first billing group, this is "Pilot_funds(USER_NAME)"
-    print billingGroups.name[0], \
-    'will be charged for this computation. Approximate price is $4 for example STAR RNA seq (n=1) \n'
- 
-    # list all projects you are part of
-    existingProjects = API(path='projects')     # make sure your project doesn't already exist
+  
+def download_files(fileList):
+    # download a list of files from URLs
+    dl_dir = 'downloads/'
     import ipdb
     ipdb.set_trace()
-    print(existingProjects)
-    # set up the information for your new project
-    NewProject = {
-            'billing_group': billingGroups.id[0],
-            'description': "A project created by the API Quickstart",
-            'name': TARGET_PROJECT,
-            'tags': ['tcga']
-    }
- 
-    # Check to make sure your project doesn't already exist on the platform
-    for ii,p_name in enumerate(existingProjects.name):
-        if TARGET_PROJECT == p_name:
-            FLAGS['targetFound'] = True
-            break
- 
-    # Make a shiny, new project
-    if FLAGS['targetFound']:
-        myProject = API(path=('projects/' + existingProjects.id[ii]))    
-        # GET existing project details (we need them later)
-    else:
-        myProject = API(method='POST', data=NewProject, path='projects') 
-        # POST new project
-        # (re)list all projects, to check that new project posted
-        existingProjects = API(path='projects')
-        # GET new project details (we will need them later)
-        myProject = API(path=('projects/' + existingProjects.id[0]))    
-        # GET new project details (we need them later)
+    try:                    # make sure we have the download directory
+        os.stat(dl_dir)
+    except:
+        os.mkdir(dl_dir)
+  
+    for ii in range(1, len(fileList)):  # skip first [0] entry, it is a text header
+        url = fileList[ii]
+        file_name = url.split('/')[-1]
+        file_name = file_name.split('?')[0]
+        #file_name = file_name.split('%2B')[1]
+        u = urlopen(url)
+        f = open((dl_dir + file_name), 'wb')
+        meta = u.info()
+        file_size = int(meta.getheaders("Content-Length")[0])
+        print "Downloading: %s Bytes: %s" % (file_name, file_size)
+  
+        file_size_dl = 0
+        block_sz = 1024*1024
+        prior_percent = 0
+        while True:
+            buffer = u.read(block_sz)
+            if not buffer:
+                break
+            file_size_dl += len(buffer)
+            f.write(buffer)
+            status = r"%10d  [%3.2f%%]" % (file_size_dl, file_size_dl * 100. / file_size)
+            status = status + chr(8)*(len(status)+1)
+            if (file_size_dl * 100. / file_size) > (prior_percent+20):
+                print status + '\n'
+                prior_percent = (file_size_dl * 100. / file_size)
+        f.close()
+  
+
+if __name__ == "__main__":
+    
+    # Check which files have been generated (only taking small files to avoid long times)
+    myNewFiles = API('files?project=perica22/copy-of-cancer-cell-line-encyclopedia-ccle') 
+    response = myNewFiles.make_call() # calling again to see what was generated
+    dlList = [i['href'] for i in response['items']]
+
+    '''for ii, f_name in enumerate(myNewFiles.name):
+        # downloading only the summary files. Adapt for whichever files you need
+        if (f_name[-4:] == '.out'):
+            dlList.append(api_call(path=('files/' + myNewFiles.id[ii] + '/download_info'))['url'])'''
+    T0 = timer.time()
+    download_files(dlList)
+    print timer.time() - T0, "seconds download time"
+
+

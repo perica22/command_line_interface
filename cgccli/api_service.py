@@ -1,46 +1,15 @@
 # IMPORTS
 import json
-
-from functools import wraps
 from requests import request
 
+from cgccli.utils import determine_endpoint_url, get_data_for_request
 
-
-def determine_endpoint_url(f):
-    @wraps(f)
-    def wrapped(self, **kwargs):
-        endpoint = kwargs.get('endpoint', None)
-        query = kwargs.get('query', None)
-
-        url = 'https://cgc-api.sbgenomics.com/v2/' + endpoint
-        if query:
-            url = url + query 
-        kwargs['url'] = url
-
-        return f(self, **kwargs)
-
-    return wrapped
-
-def get_data_for_request(f):
-    @wraps(f)
-    def wrapped(self, **kwargs):
-
-        data = kwargs.get('data', None)
-        if data:
-            if 'tags' in kwargs['endpoint']:
-                data = json.dumps(data)
-            else:
-                data = json.dumps({data[0]: data[1]})
-
-        kwargs['data'] = data
-
-        return f(self, **kwargs)
-
-    return wrapped
 
 
 class ApiService:
-    # making a class out of the api() function, adding other methods
+    '''
+    Making a class out of the API 
+    '''
     def __init__(self, token):
         self.headers = {
             "X-SBG-Auth-Token": token,

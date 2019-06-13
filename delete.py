@@ -2,6 +2,7 @@
 import json
 import click
 
+from cgccli.utils import noCommandFound
 from cgccli.cgccli_controller import CgccliController
 
 
@@ -15,17 +16,25 @@ from cgccli.cgccli_controller import CgccliController
 @click.option('--dest', required=False, default=None, show_default=True, help='Destination to download files.')
 def main(token, argument, project, file, data, dest):
 
-    cgccli = CgccliController(
-        token, file, data, dest)
+    # instance of cgccli controler
+    cgccli = CgccliController(token)
 
+    # checkig the project and file, and calling the controller
     if argument[0] == 'projects':
         response = cgccli.make_project_call(argument[1])
-    elif argument[0] == 'files':
-        response = cgccli.make_project_call(argument[1])
-    else:
-        response = 'No such command: {}'.format(argument[0])
+        if response:
+            click.echo(json.dumps(response)) if isinstance(response, dict) else click.echo(response)
+        else:
+            noCommandFound(argument[1])
 
-    click.echo(json.dumps(response)) 
+    elif argument[0] == 'files':
+        response = cgccli.make_files_call(argument[1], project, data, file, dest)
+        if response:
+            click.echo(json.dumps(response)) if isinstance(response, dict) else click.echo(response)
+        else:
+            noCommandFound(argument[1])    
+    else:
+        noCommandFound(argument[0])
 
 
 
