@@ -1,19 +1,16 @@
 import json
-from click import echo
 from functools import wraps
+from click import echo
 
 
-
-#tuple of nested object in case update call is sent 
-DICT_UPDATE = ('metadata', 'tags') 
 
 # function returnign error in case unknown cl argument is passed
-def noCommandFound(command):
+def no_command_found(command):
     echo('No such command: {}'.format(command))
 
 # decoreator determening endpoint url before making API call
-def determine_endpoint_url(f):
-    @wraps(f)
+def determine_endpoint_url(function):
+    @wraps(function)
     def wrapped(self, **kwargs):
         endpoint = kwargs.get('endpoint', None)
         query = kwargs.get('query', None)
@@ -24,13 +21,13 @@ def determine_endpoint_url(f):
             url = url + query
         kwargs['url'] = url
 
-        return f(self, **kwargs)
+        return function(self, **kwargs)
 
     return wrapped
 
 # decoreator doing proper nesting of data before making API call
-def get_data_for_request(f):
-    @wraps(f)
+def get_data_for_request(function):
+    @wraps(function)
     def wrapped(self, **kwargs):
         data = kwargs.get('data', None)
         if data:
@@ -43,6 +40,6 @@ def get_data_for_request(f):
 
         kwargs['data'] = data
 
-        return f(self, **kwargs)
+        return function(self, **kwargs)
 
     return wrapped

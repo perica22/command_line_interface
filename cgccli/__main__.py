@@ -1,8 +1,7 @@
-# TOKEN: 194a5e2aeb4447f5b6f9f56d85bf786c
 import json
 import click
 
-from cgccli.utils import noCommandFound
+from cgccli.utils import no_command_found
 from cgccli.cgccli_controller import CgccliController
 
 
@@ -14,7 +13,7 @@ from cgccli.cgccli_controller import CgccliController
 @click.option('--project', required=False, default=None, show_default=True, help='Projects to retrieve.')
 @click.option('--file', required=False, default=None, show_default=True, help='Files to retrieve or update.')
 @click.option('--dest', required=False, default=None, show_default=True, help='Destination to download files.')
-def main(token, argument, project, file, data, dest):
+def main(token=None, argument=None, project=None, file=None, data=None, dest=None):
 
     # instance of cgccli controler
     cgccli = CgccliController(token)
@@ -25,7 +24,7 @@ def main(token, argument, project, file, data, dest):
         if response:
             click.echo(json.dumps(response)) if isinstance(response, dict) else click.echo(response)
         else:
-            noCommandFound(argument[1])
+            no_command_found(argument[1])
 
     elif argument[0] == 'files':
         response = cgccli.make_files_call(
@@ -33,9 +32,9 @@ def main(token, argument, project, file, data, dest):
         if response:
             click.echo(json.dumps(response)) if isinstance(response, dict) else click.echo(response)
         else:
-            noCommandFound(argument[1])
+            no_command_found(argument[1])
     else:
-        noCommandFound(argument[0])
+        no_command_found(argument[0])
 
 
 

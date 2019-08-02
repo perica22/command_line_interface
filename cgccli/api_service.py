@@ -7,11 +7,12 @@ from cgccli.utils import determine_endpoint_url, get_data_for_request
 
 
 class ApiService:
-    '''
-    Making a class out of the API 
-    - added additional methods with decorators to make clear 
-      which endpoint/method is called from CgccliController
-    '''
+    """
+    Making a class out of the API. Added additional methods with decorators
+    to make clear which endpoint/method is called from CgccliController
+    Args:
+        token: API token
+    """
     def __init__(self, token):
         self.headers = {
             "X-SBG-Auth-Token": token,
@@ -36,6 +37,12 @@ class ApiService:
     def _request(self, method, **kwargs):
         """
         Translates all the HTTP calls to interface with the CGC
+        Args:
+            method: HTTP method used for request
+            data: request body data
+            url: endpoint URL
+        Returns:
+            response from API
         """
         data = kwargs.get('data', None)
         url = kwargs.get('url')
